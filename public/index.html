@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tasks</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #e8eef2;
+            --panel: #ffffff;
+            --ink: #14232e;
+            --muted: #6a7b88;
+            --line: #d3dde4;
+            --accent: #0f6b66;
+            --accent-ink: #ffffff;
+            --danger: #b3382c;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0e171d;
+                --panel: #16232c;
+                --ink: #e6eef3;
+                --muted: #8aa0ae;
+                --line: #263844;
+                --accent: #4cc2b8;
+                --accent-ink: #08201e;
+                --danger: #ef7d6f;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 16px/1.5 "Bricolage Grotesque", system-ui, sans-serif;
+        }
+
+        main {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 48px 20px 80px;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin: 0 0 4px;
+            line-height: 1;
+        }
+
+        .sub {
+            color: var(--muted);
+            margin: 0 0 28px;
+        }
+
+        form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        input[type=text] {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 14px;
+            font: inherit;
+            color: inherit;
+            background: var(--panel);
+            border: 1.5px solid var(--line);
+            border-radius: 10px;
+        }
+
+        input[type=text]:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 1px;
+        }
+
+        button {
+            font: inherit;
+            cursor: pointer;
+            border: 0;
+            border-radius: 10px;
+        }
+
+        button:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .add {
+            padding: 0 20px;
+            background: var(--accent);
+            color: var(--accent-ink);
+            font-weight: 600;
+        }
+
+        .filters {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+
+        .filters button {
+            padding: 6px 14px;
+            background: transparent;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .filters button[aria-pressed=true] {
+            background: var(--panel);
+            color: var(--ink);
+            box-shadow: inset 0 0 0 1.5px var(--line);
+        }
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background: var(--panel);
+            border: 1.5px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        li:last-child {
+            border-bottom: 0;
+        }
+
+        li input[type=checkbox] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent);
+            flex: none;
+            cursor: pointer;
+        }
+
+        .title {
+            flex: 1;
+            word-break: break-word;
+            cursor: text;
+        }
+
+        li.done .title {
+            color: var(--muted);
+            text-decoration: line-through;
+        }
+
+        .edit {
+            flex: 1;
+            padding: 6px 8px;
+        }
+
+        .del {
+            background: transparent;
+            color: var(--muted);
+            padding: 4px 10px;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .del:hover {
+            color: var(--danger);
+        }
+
+        .empty {
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: .9rem;
+        }
+
+        .clear {
+            background: transparent;
+            color: var(--muted);
+            text-decoration: underline;
+            padding: 4px;
+        }
+
+        .clear:hover {
+            color: var(--danger);
+        }
+
+        .error {
+            color: var(--danger);
+            margin: 0 0 12px;
+            min-height: 1.5em;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Tasks</h1>
+        <p class="sub">Double-click a task to rename it.</p>
+
+        <form id="form">
+            <input type="text" id="input" placeholder="What needs doing?" maxlength="200" autocomplete="off"
+                aria-label="New task">
+            <button class="add" type="submit">Add task</button>
+        </form>
+        <p class="error" id="error" role="alert"></p>
+
+        <div class="filters" id="filters">
+            <button data-f="all" aria-pressed="true">All</button>
+            <button data-f="active" aria-pressed="false">Active</button>
+            <button data-f="done" aria-pressed="false">Done</button>
+        </div>
+
+        <ul id="list"></ul>
+        <footer>
+            <span id="count"></span>
+            <button class="clear" id="clear">Clear completed</button>
+        </footer>
+    </main>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        let todos = [], filter = "all";
+
+        async function api(path = "", opts = {}) {
+            const res = await fetch("/api/todos" + path, {
+                headers: { "Content-Type": "application/json" }, ...opts,
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.error || "Request failed");
+            }
+            return res.status === 204 ? null : res.json();
+        }
+
+        const showError = (msg = "") => ($("error").textContent = msg);
+        const run = async (fn) => { try { showError(); await fn(); } catch (e) { showError(e.message); } };
+
+        async function load() { await run(async () => { todos = await api(); render(); }); }
+
+        function render() {
+            const shown = todos.filter((t) =>
+                filter === "all" ? true : filter === "done" ? t.completed : !t.completed);
+            const list = $("list");
+            list.innerHTML = "";
+
+            if (!shown.length) {
+                const li = document.createElement("li");
+                li.className = "empty";
+                li.textContent = filter === "all" ? "No tasks yet. Add your first one above."
+                    : filter === "done" ? "Nothing completed yet." : "All caught up.";
+                list.append(li);
+            }
+
+            shown.forEach((t) => {
+                const li = document.createElement("li");
+                if (t.completed) li.className = "done";
+
+                const cb = document.createElement("input");
+                cb.type = "checkbox"; cb.checked = t.completed;
+                cb.setAttribute("aria-label", `Mark "${t.title}" as ${t.completed ? "active" : "done"}`);
+                cb.onchange = () => run(async () => {
+                    const u = await api("/" + t._id, { method: "PATCH", body: JSON.stringify({ completed: cb.checked }) });
+                    Object.assign(t, u); render();
+                });
+
+                const title = document.createElement("span");
+                title.className = "title"; title.textContent = t.title;
+                title.ondblclick = () => startEdit(t, li, title);
+
+                const del = document.createElement("button");
+                del.className = "del"; del.textContent = "×"; del.setAttribute("aria-label", `Delete "${t.title}"`);
+                del.onclick = () => run(async () => {
+                    await api("/" + t._id, { method: "DELETE" });
+                    todos = todos.filter((x) => x._id !== t._id); render();
+                });
+
+                li.append(cb, title, del);
+                list.append(li);
+            });
+
+            const left = todos.filter((t) => !t.completed).length;
+            $("count").textContent = `${left} ${left === 1 ? "task" : "tasks"} left`;
+            $("clear").hidden = !todos.some((t) => t.completed);
+            document.querySelectorAll("#filters button").forEach((b) =>
+                b.setAttribute("aria-pressed", b.dataset.f === filter));
+        }
+
+        function startEdit(t, li, titleEl) {
+            const inp = document.createElement("input");
+            inp.type = "text"; inp.className = "edit"; inp.value = t.title; inp.maxLength = 200;
+            li.replaceChild(inp, titleEl); inp.focus(); inp.select();
+            let done = false;
+            const finish = (save) => {
+                if (done) return; done = true;
+                const v = inp.value.trim();
+                if (!save || !v || v === t.title) return render();
+                run(async () => {
+                    const u = await api("/" + t._id, { method: "PATCH", body: JSON.stringify({ title: v }) });
+                    Object.assign(t, u); render();
+                });
+            };
+            inp.onkeydown = (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); };
+            inp.onblur = () => finish(true);
+        }
+
+        $("form").onsubmit = (e) => {
+            e.preventDefault();
+            const title = $("input").value.trim();
+            if (!title) return showError("Enter a task before adding it.");
+            run(async () => {
+                const t = await api("", { method: "POST", body: JSON.stringify({ title }) });
+                todos.unshift(t); $("input").value = ""; render();
+            });
+        };
+
+        $("filters").onclick = (e) => { if (e.target.dataset.f) { filter = e.target.dataset.f; render(); } };
+        $("clear").onclick = () => run(async () => {
+            await api("", { method: "DELETE" });
+            todos = todos.filter((t) => !t.completed); render();
+        });
+
+        load();
+    </script>
+</body>
+
+</html>
